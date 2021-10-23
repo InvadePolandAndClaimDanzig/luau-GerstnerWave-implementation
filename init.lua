@@ -1,7 +1,7 @@
 -- based on iamtryingtofindname's Gerstner wave implementation
--- This module is freely distributed on this topic : https://devforum.roblox.com/t/realistic-oceans-using-mesh-deformation/1159345 as of writing (OCTOBER 23 2021)
+-- The initial module is freely distributed on this topic : https://devforum.roblox.com/t/realistic-oceans-using-mesh-deformation/1159345 as of writing (OCTOBER 23 2021)
 -- I've done major changes to make it fit my needs
--- 22/09/2021
+-- 23/10/2021
 
 local Wave = {}
 
@@ -82,7 +82,7 @@ local function CreateSettings(s, o)
 		Amplitude = s.Amplitude			or o.Amplitude	   or default.Amplitude,
 		TimeModifier = s.TimeModifier 	or o.TimeModifier  or default.TimeModifier,
 		MaxDistance = s.MaxDistance 	or o.MaxDistance   or default.MaxDistance,
-		
+
 		RestoreToDefaultCFrame = s.RestoreToDefaultCFrame or o.RestoreToDefaultCFrame or default.RestoreToDefaultCFrame
 	}
 
@@ -142,7 +142,7 @@ function Wave.new(meshes, waveSettings, camera, sphereRadius, bones)
 			else
 				for _, v in pairs(bones[1]) do
 					local bone = mesh:FindFirstChild(v.Name)
-					
+
 					if bone and bone:IsA("Bone") then
 						table.insert(bones[meshIndex], bone)
 					end
@@ -150,7 +150,7 @@ function Wave.new(meshes, waveSettings, camera, sphereRadius, bones)
 			end
 		end
 	end
-	
+
 	-- Be aware that the same bone transform will given no matter whether or not it's the same mesh as the others meshes in the array
 	local self = setmetatable({
 		_instance = meshes[1],
@@ -173,7 +173,7 @@ function Wave:Update(baseOffset)
 		local worldPos = v.WorldPosition
 		local Settings = self._settings
 		local Direction = Settings.Direction
-		
+
 		-- wrote this piece of code to prevent the bone from updating if it's out of sight, 
 		-- but it ended up making operations more expensive lmao
 		if (self._sphereRadius) then
@@ -184,7 +184,7 @@ function Wave:Update(baseOffset)
 			local pointVisible = distanceBetweenEyeAndPoint < SQRT(distanceBetweenEyeAndSphereCenter ^ 2 + self._sphereRadius ^ 2)
 			if not pointVisible then v.Transform = IdentityCFrame; end
 		end
-		
+
 		-- generate a perlin noise value if the direction vector is not specified
 		local function check(i, d)
 			if d == EmptyVector2 or d == nil then
@@ -222,7 +222,7 @@ function Wave:Update(baseOffset)
 			local dir = currSettings.Direction or check(index - 1, currSettings.Direction)
 			sum += Gerstner(worldPos, currSettings.WaveLength, dir, currSettings.Steepness, currSettings.Gravity, self._time)
 		end
-		
+
 		for boneIndex, bone in pairs(self._bones) do
 			bone[a].Transform = newCFrame(sum * Settings.Amplitude)
 		end
@@ -235,7 +235,7 @@ function Wave:Refresh()
 			if boneIndex == 1 then
 				self._lastBoneTransform[_i] = v.Transform
 			end
-			
+
 			v.Transform = self._settings.RestoreToDefaultCFrame == "true" and IdentityCFrame or self._lastBoneTransform[_i]
 		end
 	end
@@ -249,9 +249,9 @@ function Wave:ConnectRenderStepped(baseOffset)
 	local Connection = Stepped:Connect(function(dt)
 		if not game:IsLoaded() then return end
 		local Settings = self._settings
-		
+
 		-- local currentTimestamp = t(Settings)
-		
+
 		if not self._activeCamera or (self._activeCamera.CFrame.p - self._instance.Position).Magnitude < Settings.MaxDistance then
 			self._unloaded = false
 			self._time += dt * Settings.TimeModifier -- simulation time elapsed
